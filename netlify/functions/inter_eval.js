@@ -34,8 +34,8 @@ exports.handler = async (event) => {
       };
     }
 
-    // Construct prompt for structured response
-    let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, analyze the candidate and provide ONLY a JSON response in the format below:
+    // Construct prompt for detailed structured response
+    let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, analyze the candidate and provide ONLY a well-detailed JSON response in the exact format below:
 
 {
   "technicalMistakes": ["..."],
@@ -46,7 +46,9 @@ exports.handler = async (event) => {
   "overallScore": number
 }
 
-Respond in pure JSON only. Do not include any commentary or markdown formatting.
+Each section should have at least 2–4 clearly stated, specific and insightful points. Use professional language.
+
+Respond in strict JSON format only. Do not use markdown or commentary.
 
 Interview Q&A:\n\n`;
 
@@ -74,7 +76,7 @@ Interview Q&A:\n\n`;
           },
         ],
         temperature: 0.3,
-        max_tokens: 1024,
+        max_tokens: 2048,
       }),
     });
 
@@ -83,7 +85,7 @@ Interview Q&A:\n\n`;
 
     // Remove markdown formatting if present
     content = content.trim();
-    if (content.startsWith("```") && content.endsWith("```")) {
+    if (content.startsWith("```) && content.endsWith("```")) {
       content = content.slice(3, -3).trim();
       if (content.startsWith("json")) {
         content = content.slice(4).trim();
@@ -116,5 +118,4 @@ Interview Q&A:\n\n`;
     };
   }
 };
-
 
