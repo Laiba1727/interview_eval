@@ -1,0 +1,6 @@
+[build]
+  functions = "netlify/functions"  # Directory where your functions are stored
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]  # Ensure node-fetch is bundled in your functions
