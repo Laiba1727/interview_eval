@@ -34,10 +34,17 @@ exports.handler = async (event) => {
       };
     }
 
-    // Construct prompt for detailed structured response
+    // Construct prompt for detailed structured response with per-QA insights (no headings)
     let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, analyze the candidate and provide ONLY a well-detailed JSON response in the exact format below:
 
 {
+  "perAnswerInsights": [
+    {
+      "question": "...",
+      "answer": "...",
+      "insight": "Detailed analysis and feedback for this Q&A here, written in professional and specific language."
+    }
+  ],
   "technicalMistakes": ["..."],
   "communicationMistakes": ["..."],
   "strengths": ["..."],
@@ -46,9 +53,11 @@ exports.handler = async (event) => {
   "overallScore": number
 }
 
-Each section should have at least 2–4 clearly stated, specific and insightful points. Use professional language.
+For the "perAnswerInsights", provide a detailed paragraph or two of analysis for each question-answer pair without dividing it into subcategories. Use clear and professional language.
 
-Respond in strict JSON format only. Do not use markdown or commentary.
+For the general evaluation sections, include at least 2–4 specific, insightful points each.
+
+Respond ONLY with valid JSON. Do not include any markdown, commentary, or explanation.
 
 Interview Q&A:\n\n`;
 
