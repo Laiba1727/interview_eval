@@ -85,7 +85,7 @@ Interview Q&A:\n\n`;
 
     // Remove markdown formatting if present
     content = content.trim();
-    if (content.startsWith("```) && content.endsWith("```")) {
+    if (content.startsWith("```") && content.endsWith("```")) {
       content = content.slice(3, -3).trim();
       if (content.startsWith("json")) {
         content = content.slice(4).trim();
