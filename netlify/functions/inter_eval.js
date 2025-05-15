@@ -12,7 +12,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // Clean & extract Q&A pairs: 
+    // Extract valid Q&A pairs
     const qaPairs = [];
     for (let i = 0; i < messages.length - 1; i++) {
       if (
@@ -34,8 +34,21 @@ exports.handler = async (event) => {
       };
     }
 
-    // Updated prompt for structured JSON feedback with a score
-    let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, provide:\n\n1. An overallScore (1-10) representing how well the candidate performed.\n2. A paragraph of constructive feedback.\n\nRespond ONLY in the following JSON format:\n{\n  "overallScore": number,\n  "feedback": "text"\n}\n\nInterview:\n\n`;
+    // Construct prompt for structured response
+    let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, analyze the candidate and provide ONLY a JSON response in the format below:
+
+{
+  "technicalMistakes": ["..."],
+  "communicationMistakes": ["..."],
+  "strengths": ["..."],
+  "areasToImprove": ["..."],
+  "recommendations": ["..."],
+  "overallScore": number
+}
+
+Respond in pure JSON only. Do not include any commentary or markdown formatting.
+
+Interview Q&A:\n\n`;
 
     qaPairs.forEach((pair) => {
       prompt += `Question: ${pair.question}\nAnswer: ${pair.answer}\n\n`;
@@ -68,12 +81,10 @@ exports.handler = async (event) => {
     const result = await response.json();
     let content = result?.choices?.[0]?.message?.content || "";
 
-    // Remove markdown code block wrappers if present
+    // Remove markdown formatting if present
     content = content.trim();
     if (content.startsWith("```") && content.endsWith("```")) {
       content = content.slice(3, -3).trim();
-
-      // Remove language identifier if present (e.g. ```json)
       if (content.startsWith("json")) {
         content = content.slice(4).trim();
       }
