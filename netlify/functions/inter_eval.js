@@ -13,7 +13,6 @@ exports.handler = async (event) => {
     }
 
     // Clean & extract Q&A pairs: 
-    // Assume interview bot "Morgan" asks questions, "user" answers.
     const qaPairs = [];
     for (let i = 0; i < messages.length - 1; i++) {
       if (
@@ -35,14 +34,14 @@ exports.handler = async (event) => {
       };
     }
 
-    // Prepare prompt for the LLM
-    let prompt = `You are an expert interview evaluator. Given the following interview questions and candidate answers, provide detailed feedback on how well the candidate responded. Consider clarity, relevance, confidence, and areas for improvement.\n\n`;
+    // Updated prompt for structured JSON feedback with a score
+    let prompt = `You are an expert interview evaluator. Based on the following interview Q&A pairs, provide:\n\n1. An overallScore (1-10) representing how well the candidate performed.\n2. A paragraph of constructive feedback.\n\nRespond ONLY in the following JSON format:\n{\n  "overallScore": number,\n  "feedback": "text"\n}\n\nInterview:\n\n`;
 
     qaPairs.forEach((pair, idx) => {
-      prompt += `Question ${idx + 1}: ${pair.question}\nAnswer ${idx + 1}: ${pair.answer}\n\n`;
+      prompt += `Question: ${pair.question}\nAnswer: ${pair.answer}\n\n`;
     });
 
-    // Call Groq API for evaluation
+    // Call Groq API
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -67,12 +66,25 @@ exports.handler = async (event) => {
     });
 
     const result = await response.json();
-    const evaluation = result?.choices?.[0]?.message?.content || "No feedback received.";
+    const content = result?.choices?.[0]?.message?.content;
+
+    let structuredOutput;
+    try {
+      structuredOutput = JSON.parse(content);
+    } catch (parseError) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: "Failed to parse model response as JSON.",
+          rawResponse: content,
+        }),
+      };
+    }
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ evaluation }),
+      body: JSON.stringify(structuredOutput),
     };
   } catch (err) {
     console.error("Error:", err);
@@ -82,3 +94,4 @@ exports.handler = async (event) => {
     };
   }
 };
+
